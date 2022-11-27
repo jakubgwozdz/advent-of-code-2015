@@ -1,6 +1,7 @@
 package day6
 
 import readAllText
+import java.lang.Integer.max
 import kotlin.time.measureTime
 
 fun main() = measureTime {
@@ -42,4 +43,18 @@ fun part1(input: String) = input.lineSequence().filterNot(String::isBlank)
     .sumOf { it.sum() }
 
 fun part2(input: String) = input.lineSequence().filterNot(String::isBlank)
-    .count()
+    .map(::parse)
+    .fold(Array(1000) { IntArray(1000) }) { acc, (command, x1, y1, x2, y2) ->
+        (x1..x2).forEach { x ->
+            (y1..y2).forEach { y ->
+                when (command) {
+                    Command.Op.On -> acc[x][y] += 1
+                    Command.Op.Off -> acc[x][y] = max(0, acc[x][y] - 1)
+                    Command.Op.Toggle -> acc[x][y] += 2
+                }
+            }
+        }
+        acc
+    }
+//    .also(::writeImg)
+    .sumOf { it.sum() }
