@@ -2,12 +2,13 @@ package day6
 
 import readAllText
 import java.lang.Integer.max
+import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
 fun main() = measureTime {
     println(part1(readAllText("local/day6_input.txt")))
     println(part2(readAllText("local/day6_input.txt")))
-}.let { println(it) }
+}.let { println(it.toString(DurationUnit.SECONDS, 3)) }
 
 private data class Command(val op: Op, val x1: Int, val y1: Int, val x2: Int, val y2: Int) {
     enum class Op(val desc: String) {
