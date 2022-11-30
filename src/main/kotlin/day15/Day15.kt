@@ -13,11 +13,12 @@ fun part1(input: String): Long {
         .map { counts ->
             counts.zip(ingredients) { c, i -> i * c }.reduce { a, i -> a + i }
         }
-        .map { total->
+        .map { total ->
             (total.a.coerceAtLeast(0) * total.b.coerceAtLeast(0) * total.c.coerceAtLeast(0) * total.d.coerceAtLeast(0))
         }
         .max()
 }
+
 fun part2(input: String): Long {
     val ingredients = parse(input).toList()
     return possibilities()
