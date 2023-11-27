@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.7.21"
+    kotlin("jvm") version "1.9.21"
     application
 }
 
@@ -10,5 +10,3 @@ dependencies {
 }
 
 application.mainClass.set("MainKt")
-
-tasks.compileKotlin { kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.time.ExperimentalTime" }
