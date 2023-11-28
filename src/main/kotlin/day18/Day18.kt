@@ -85,7 +85,7 @@ fun part2(input: String, steps: Int = 100) = input.lineSequence().filterNot(Stri
                     }.also { add(it) }
                 }
             }
-                .also { println(it.joinToString("\n") + "\n") }
+//                .also { println(it.joinToString("\n") + "\n") }
         }
     }
     .sumOf { it.count { it == '#' } }

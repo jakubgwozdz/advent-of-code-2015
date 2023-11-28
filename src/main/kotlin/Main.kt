@@ -64,7 +64,7 @@ fun main() {
     runFor(25, 2) { day25.part2(it) }
 }
 
-private fun runFor(day: Int, part: Int, op: (String) -> Any) {
+private fun runFor(day: Int, part: Int, op: (String) -> Any?) {
     val file = "local/day${day}_input.txt"
     if (Files.exists(Path.of(file))) {
         val input = readAllText(file)

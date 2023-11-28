@@ -7,34 +7,30 @@ fun main() {
     println(part2(readAllText("local/day22_input.txt")))
 }
 
-fun part1(input: String): Int {
+fun part1(input: String): Win? {
     val hitPoints = input.substringAfter("Hit Points: ").lineSequence().first().toInt()
     val damage = input.substringAfter("Damage: ").lineSequence().first().toInt()
-    return game(GameState(50, 500, hitPoints, damage))?.let { it as Win }?.spentMana ?: error("no win")
+    return game(GameState(50, 500, hitPoints, damage))
 }
 
-fun part2(input: String): Int {
+fun part2(input: String): Win? {
     val hitPoints = input.substringAfter("Hit Points: ").lineSequence().first().toInt()
     val damage = input.substringAfter("Damage: ").lineSequence().first().toInt()
-    return game(GameState(50, 500, hitPoints, damage), true)?.let { it as Win }?.spentMana ?: error("no win")
+    return game(GameState(50, 500, hitPoints, damage), true)
 }
 
 sealed interface Result {
-    fun ifNotEnded(op: GameState.() -> GameState): Result
+    fun ifNotEnded(op: GameState.() -> GameState): Result = this
 }
 
 data class Win(
     val spentMana: Int,
     val spells: List<Spell>,
 ) : Result {
-    override fun ifNotEnded(op: GameState.() -> GameState) = this
+    override fun toString() = "$spentMana  # spells=$spells"
 }
 
-data class Lose(
-    val spells: List<Spell>,
-) : Result {
-    override fun ifNotEnded(op: GameState.() -> GameState) = this
-}
+data object Loss : Result
 
 data class GameState(
     val playerHP: Int,
@@ -48,7 +44,14 @@ data class GameState(
     val rechargeLeft: Int = 0,
     val spells: List<Spell> = emptyList(),
 ) : Result {
-    override fun ifNotEnded(op: GameState.() -> GameState) = op.invoke(this).checkEnd()
+    override fun ifNotEnded(op: GameState.() -> GameState): Result = op.invoke(this).let {
+        when {
+            it.playerHP <= 0 -> Loss
+            it.playerMana < 0 -> Loss
+            it.bossHP <= 0 -> Win(it.spentMana, it.spells)
+            else -> it
+        }
+    }
 
     fun applyEffects() = copy(
         playerMana = if (rechargeLeft > 0) playerMana + 101 else playerMana,
@@ -71,11 +74,6 @@ data class GameState(
 
     fun performSpell(spell: Spell) = spell.op(this)
 
-    fun checkEnd() =
-        if (playerHP <= 0 || playerMana < 0) Lose(spells)
-        else if (bossHP <= 0) Win(spentMana, spells)
-        else this
-
     fun easyOrHard(hard: Boolean) = if (hard) copy(playerHP = playerHP - 1) else this
 
     fun round(spell: Spell, hard: Boolean) = this
@@ -96,20 +94,20 @@ enum class Spell(val cost: Int, val op: (GameState) -> GameState) {
 }
 
 class Game {
-    var best: Int? = null
-    fun perform(state: GameState, hard: Boolean = false): Result? = DeepRecursiveFunction<GameState, Result?> { s ->
+    var best: Int = Int.MAX_VALUE
+    fun perform(state: GameState, hard: Boolean = false): Win? = DeepRecursiveFunction<GameState, Win?> { s ->
         Spell.entries
             .map { s.round(it, hard) }
             .mapNotNull { result ->
                 when (result) {
-                    is Win -> result.also { best = best?.coerceAtMost(it.spentMana) ?: it.spentMana }
-                    is Lose -> null
-                    is GameState -> if (best != null && best!! <= result.spentMana) null
+                    is Win -> result.also { best = best.coerceAtMost(it.spentMana) }
+                    is Loss -> null
+                    is GameState -> if (best <= result.spentMana) null
                     else callRecursive(result)
                 }
             }
-            .minByOrNull { (it as Win).spentMana }
+            .minByOrNull { it.spentMana }
     }(state)
 }
 
-fun game(state: GameState, hard: Boolean = false): Result? = Game().perform(state, hard)
+fun game(state: GameState, hard: Boolean = false): Win? = Game().perform(state, hard)
